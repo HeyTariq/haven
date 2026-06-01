@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1780119334196,
+      "tag": "0000_complex_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1780120133705,
+      "tag": "0001_old_red_hulk",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780212979987,
+      "tag": "0002_chilly_darkhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1780276048397,
+      "tag": "0003_heavy_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1780277428309,
+      "tag": "0004_mean_nighthawk",
+      "breakpoints": true
+    }
+  ]
+}
