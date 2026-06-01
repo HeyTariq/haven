@@ -28,6 +28,31 @@ export async function setSetting(key: string, value: string): Promise<void> {
     .onConflictDoUpdate({ target: appSetting.key, set: { value } });
 }
 
+export type AuthMode = "password" | "passwordless";
+export type HouseholdType = "solo" | "family" | "roommates";
+
+// Passwordless drops the login challenge but keeps identity; only this value
+// changes app behavior. Defaults to "password" so an unconfigured install stays gated.
+export async function getAuthMode(): Promise<AuthMode> {
+  const value = await getSetting("app.authMode", "password");
+  return value === "passwordless" ? "passwordless" : "password";
+}
+
+export async function setAuthMode(mode: AuthMode): Promise<void> {
+  await setSetting("app.authMode", mode);
+}
+
+// Cosmetic today; informs setup defaults and future per-type settings.
+export async function getHouseholdType(): Promise<HouseholdType> {
+  const value = await getSetting("app.householdType", "roommates");
+  if (value === "solo" || value === "family") return value;
+  return "roommates";
+}
+
+export async function setHouseholdType(type: HouseholdType): Promise<void> {
+  await setSetting("app.householdType", type);
+}
+
 export type ChoreSettings = {
   editPolicy: "any" | "ownerOrAdmin";
   showPoints: boolean;

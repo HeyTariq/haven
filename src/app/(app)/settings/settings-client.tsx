@@ -4,19 +4,27 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { AppearanceClient } from "./appearance/appearance-client";
 import { MembersClient } from "./members/members-client";
+import { HouseholdClient } from "./household/household-client";
 import { PageContainer } from "@/components/page-container";
+import type { AuthMode } from "@/lib/settings";
 
 interface Props {
   isAdmin: boolean;
   activeTab: string;
+  authMode: AuthMode;
 }
 
-export function SettingsClient({ isAdmin, activeTab }: Props) {
+export function SettingsClient({ isAdmin, activeTab, authMode }: Props) {
   const router = useRouter();
 
   const tabs = [
     { id: "appearance", label: "Appearance" },
-    ...(isAdmin ? [{ id: "members", label: "Members" }] : []),
+    ...(isAdmin
+      ? [
+          { id: "household", label: "Household" },
+          { id: "members", label: "Members" },
+        ]
+      : []),
   ];
 
   return (
@@ -41,7 +49,12 @@ export function SettingsClient({ isAdmin, activeTab }: Props) {
       </div>
 
       {activeTab === "appearance" && <AppearanceClient />}
-      {activeTab === "members" && isAdmin && <MembersClient />}
+      {activeTab === "household" && isAdmin && (
+        <HouseholdClient authMode={authMode} />
+      )}
+      {activeTab === "members" && isAdmin && (
+        <MembersClient authMode={authMode} />
+      )}
     </PageContainer>
   );
 }

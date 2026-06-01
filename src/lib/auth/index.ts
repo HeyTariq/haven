@@ -1,8 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
+import { passwordlessPlugin } from "./passwordless-plugin";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -14,7 +16,8 @@ export const auth = betterAuth({
     // only /setup and admin panel create accounts
     disableSignUp: true,
   },
-  plugins: [admin()],
+  // nextCookies must be last so it forwards Set-Cookie from auth.api calls made in server actions.
+  plugins: [admin(), passwordlessPlugin(), nextCookies()],
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
   // "*" trusts any origin via wildcard pattern; otherwise a comma-separated allowlist

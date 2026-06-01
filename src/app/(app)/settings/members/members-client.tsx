@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
+import { createPasswordlessMember } from "../actions";
+import type { AuthMode } from "@/lib/settings";
 
 type Member = {
   id: string;
@@ -25,7 +27,8 @@ type Member = {
   banned: boolean | null;
 };
 
-export function MembersClient() {
+export function MembersClient({ authMode }: { authMode: AuthMode }) {
+  const passwordless = authMode === "passwordless";
   const [members, setMembers] = useState<Member[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
@@ -47,14 +50,31 @@ export function MembersClient() {
     e.preventDefault();
     setLoading(true);
     const form = new FormData(e.currentTarget);
+    const name = form.get("name") as string;
+    const email = form.get("email") as string;
+    const role = (form.get("role") as string) || "member";
+
+    if (passwordless) {
+      // No credential account; profile signs in by picking itself.
+      const res = await createPasswordlessMember(name, email, role);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success("Profile created.");
+        setOpen(false);
+        loadMembers();
+      }
+      setLoading(false);
+      return;
+    }
 
     const res = await authClient.admin.createUser({
-      name: form.get("name") as string,
-      email: form.get("email") as string,
+      name,
+      email,
       password: form.get("password") as string,
       // Better Auth's admin plugin only types "user" | "admin"; we store
       // additional role values (child, guest) directly in the text column via assertion
-      role: ((form.get("role") as string) || "user") as "user" | "admin",
+      role: role as "user" | "admin",
     });
 
     if (res.error) {
@@ -83,11 +103,13 @@ export function MembersClient() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={<Button size="sm" />}>
             <Plus className="h-4 w-4 mr-1" />
-            Add member
+            {passwordless ? "Add profile" : "Add member"}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Member</DialogTitle>
+              <DialogTitle>
+                {passwordless ? "Add Profile" : "Add Member"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4 mt-2">
               <div className="space-y-2">
@@ -98,10 +120,12 @@ export function MembersClient() {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" name="email" type="email" required />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Temporary password</Label>
-                <Input id="password" name="password" type="password" required minLength={8} />
-              </div>
+              {!passwordless && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Temporary password</Label>
+                  <Input id="password" name="password" type="password" required minLength={8} />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <select name="role" id="role" className="w-full border rounded-md px-3 py-2 text-sm bg-background">
@@ -112,7 +136,11 @@ export function MembersClient() {
                 </select>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating..." : "Create member"}
+                {loading
+                  ? "Creating..."
+                  : passwordless
+                    ? "Create profile"
+                    : "Create member"}
               </Button>
             </form>
           </DialogContent>

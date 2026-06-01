@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { signOut } from "@/lib/auth/client";
+import { forgetDevice } from "@/lib/auth/passwordless";
 
 interface NavModule {
   id: string;
@@ -41,6 +42,8 @@ export function AppSidebar({ user, navModules }: AppSidebarProps) {
 
   async function handleSignOut() {
     await signOut();
+    // Clear the device's remembered profile so sign-out returns to the picker.
+    await forgetDevice();
     router.push("/login");
     router.refresh();
   }

@@ -128,3 +128,44 @@
     font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   }
 }
+
+/* Clearer resize grip for dashboard widgets in customize view.
+   Handles only render while editing (RGL isResizable).
+   Uses --foreground so it stays high-contrast in both light and dark mode. */
+.react-resizable-handle {
+  background-image: none;
+  width: 20px;
+  height: 20px;
+  right: 2px;
+  bottom: 2px;
+  padding: 0;
+  opacity: 1;
+}
+/* Contrasting backing chip separates the grip from widget content. */
+.react-resizable-handle::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  background: var(--foreground);
+  opacity: 0.12;
+  border-radius: 4px;
+  transition: opacity 0.15s ease;
+}
+/* L-shaped corner bracket grip. */
+.react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 10px;
+  height: 10px;
+  border-right: 2.5px solid var(--foreground);
+  border-bottom: 2.5px solid var(--foreground);
+  border-bottom-right-radius: 2px;
+}
+.react-grid-item:hover .react-resizable-handle::before {
+  opacity: 0.22;
+}

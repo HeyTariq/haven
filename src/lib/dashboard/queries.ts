@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { dashboardPreference } from "@/lib/db/schema/dashboard";
 import { getWidgetModules } from "@/lib/modules/registry";
+import { buildPresetLayout } from "./preset";
 import {
   PRIMARY_BREAKPOINT,
   PRIMARY_COLS,
@@ -50,11 +51,21 @@ export async function getDashboardLayout(
 
   const primary = (layouts[PRIMARY_BREAKPOINT] ??= []);
   const placedIds = new Set(primary.map((p) => p.i));
+  const unplaced = widgets.filter(
+    (m) => !hiddenSet.has(m.id) && !placedIds.has(m.id)
+  );
 
-  for (const m of widgets) {
-    if (hiddenSet.has(m.id) || placedIds.has(m.id)) continue;
-    primary.push(appendPlacement(primary, m.id, m.widget!.defaultLayout));
-    placedIds.add(m.id);
+  if (primary.length === 0) {
+    // Fresh dashboard: apply the curated preset.
+    const preset = buildPresetLayout(
+      unplaced.map((m) => ({ id: m.id, defaultLayout: m.widget!.defaultLayout }))
+    );
+    primary.push(...preset);
+  } else {
+    // Existing layout: flow-append newly added widgets without disturbing it.
+    for (const m of unplaced) {
+      primary.push(appendPlacement(primary, m.id, m.widget!.defaultLayout));
+    }
   }
 
   return { layouts, hidden };

@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { saveDashboardLayout } from "@/lib/dashboard/actions";
+import { buildPresetLayout } from "@/lib/dashboard/preset";
 import {
   GRID_BREAKPOINTS,
   GRID_COLS,
@@ -36,25 +37,6 @@ export type DashboardWidget = {
 };
 
 const ResponsiveGridLayout = RGL.WidthProvider(RGL.Responsive);
-
-// Flow-place widgets across the primary breakpoint, wrapping at the column
-// count. Mirrors the server reconcile so client "Reset" matches a fresh layout.
-function buildDefaultLayout(widgets: DashboardWidget[]): Layout[] {
-  const placed: Layout[] = [];
-  for (const w of widgets) {
-    const bottom = placed.reduce((max, p) => Math.max(max, p.y + p.h), 0);
-    placed.push({
-      i: w.id,
-      x: 0,
-      y: bottom,
-      w: Math.min(w.defaultLayout.w, PRIMARY_COLS),
-      h: w.defaultLayout.h,
-      minW: w.defaultLayout.minW,
-      minH: w.defaultLayout.minH,
-    });
-  }
-  return placed;
-}
 
 export function DashboardGrid({
   initialLayout,
@@ -127,7 +109,7 @@ export function DashboardGrid({
 
   function handleReset() {
     setHidden([]);
-    setLayouts({ [PRIMARY_BREAKPOINT]: buildDefaultLayout(widgets) });
+    setLayouts({ [PRIMARY_BREAKPOINT]: buildPresetLayout(widgets) });
   }
 
   return (
