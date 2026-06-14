@@ -22,7 +22,7 @@ function getDb(): DrizzleDB {
 // preventing SQLITE_BUSY races when Next.js build workers import this module.
 export const db = new Proxy({} as DrizzleDB, {
   get(_, prop: string | symbol) {
-    return (getDb() as any)[prop];
+    return Reflect.get(getDb(), prop);
   },
 });
 
