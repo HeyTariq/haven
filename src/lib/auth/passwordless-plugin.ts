@@ -15,6 +15,14 @@ import { user as userTable } from "@/lib/db/schema/auth";
 export const passwordlessPlugin = () =>
   ({
     id: "passwordless",
+    // Throttle PIN guessing. Better Auth's built-in /sign-in* rule (3 req / 10s)
+    // already covers this path in production, but PINs are only 4-8 digits, so we
+    // tighten it to 5 attempts per minute per IP and make the intent explicit in
+    // code. Rate limiting is only active when enabled (on by default in
+    // production); a household running the Docker image gets it automatically.
+    rateLimit: [
+      { pathMatcher: (path: string) => path === "/sign-in/passwordless", window: 60, max: 5 },
+    ],
     endpoints: {
       signInPasswordless: createAuthEndpoint(
         "/sign-in/passwordless",
