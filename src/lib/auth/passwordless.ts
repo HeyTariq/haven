@@ -2,25 +2,22 @@
 
 import { headers } from "next/headers";
 import { auth } from "./index";
-import { getAuthMode } from "@/lib/settings";
 import {
   setRememberedProfile,
   clearRememberedProfile,
 } from "./device-profile";
 
 // Establishes a session for a chosen profile without a password. The endpoint
-// enforces passwordless mode; nextCookies() persists the session cookie. When
-// remember is set, the device also remembers this profile for next time.
+// verifies the PIN itself for PIN-protected profiles; nextCookies() persists the
+// session cookie. When remember is set, the device also remembers this profile.
 export async function signInAsUser(
   userId: string,
+  pin?: string,
   remember = true,
 ): Promise<{ error?: string }> {
-  if ((await getAuthMode()) !== "passwordless") {
-    return { error: "Passwordless sign-in is disabled." };
-  }
   try {
     await auth.api.signInPasswordless({
-      body: { userId },
+      body: { userId, pin },
       headers: await headers(),
     });
     if (remember) {

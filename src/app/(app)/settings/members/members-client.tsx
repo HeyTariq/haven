@@ -15,31 +15,25 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2 } from "lucide-react";
-import { createPasswordlessMember } from "../actions";
-import type { AuthMode } from "@/lib/settings";
+import { Plus, Trash2, Ban } from "lucide-react";
+import {
+  listMembers,
+  createMember,
+  clearMemberPin,
+  type MemberRow,
+} from "../actions";
 
-type Member = {
-  id: string;
-  name: string;
-  email: string;
-  role: string | null;
-  banned: boolean | null;
-};
-
-export function MembersClient({ authMode }: { authMode: AuthMode }) {
-  const passwordless = authMode === "passwordless";
-  const [members, setMembers] = useState<Member[]>([]);
+export function MembersClient() {
+  const [members, setMembers] = useState<MemberRow[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState("member");
 
   async function loadMembers() {
-    const res = await authClient.admin.listUsers({ query: { limit: 100 } });
-    if (res.data) {
-      setMembers(res.data.users as Member[]);
-      setLoaded(true);
-    }
+    const rows = await listMembers();
+    setMembers(rows);
+    setLoaded(true);
   }
 
   if (!loaded) {
@@ -50,41 +44,31 @@ export function MembersClient({ authMode }: { authMode: AuthMode }) {
     e.preventDefault();
     setLoading(true);
     const form = new FormData(e.currentTarget);
-    const name = form.get("name") as string;
-    const email = form.get("email") as string;
-    const role = (form.get("role") as string) || "member";
-
-    if (passwordless) {
-      // No credential account; profile signs in by picking itself.
-      const res = await createPasswordlessMember(name, email, role);
-      if (res.error) {
-        toast.error(res.error);
-      } else {
-        toast.success("Profile created.");
-        setOpen(false);
-        loadMembers();
-      }
-      setLoading(false);
-      return;
-    }
-
-    const res = await authClient.admin.createUser({
-      name,
-      email,
-      password: form.get("password") as string,
-      // Better Auth's admin plugin only types "user" | "admin"; we store
-      // additional role values (child, guest) directly in the text column via assertion
-      role: role as "user" | "admin",
-    });
-
+    const res = await createMember(
+      form.get("name") as string,
+      form.get("email") as string,
+      role,
+      (form.get("pin") as string) || undefined,
+    );
     if (res.error) {
-      toast.error(res.error.message ?? "Failed to create member.");
+      toast.error(res.error);
     } else {
-      toast.success("Member created.");
+      toast.success("Profile created.");
       setOpen(false);
+      setRole("member");
       loadMembers();
     }
     setLoading(false);
+  }
+
+  async function handleClearPin(m: MemberRow) {
+    const res = await clearMemberPin(m.id);
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(`PIN reset for ${m.name}. They can set a new one.`);
+      loadMembers();
+    }
   }
 
   async function handleRemove(id: string) {
@@ -103,13 +87,11 @@ export function MembersClient({ authMode }: { authMode: AuthMode }) {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={<Button size="sm" />}>
             <Plus className="h-4 w-4 mr-1" />
-            {passwordless ? "Add profile" : "Add member"}
+            Add profile
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {passwordless ? "Add Profile" : "Add Member"}
-              </DialogTitle>
+              <DialogTitle>Add Profile</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4 mt-2">
               <div className="space-y-2">
@@ -117,30 +99,46 @@ export function MembersClient({ authMode }: { authMode: AuthMode }) {
                 <Input id="name" name="name" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" required />
+                <Label htmlFor="email">Email (optional)</Label>
+                <Input id="email" name="email" type="email" />
               </div>
-              {!passwordless && (
-                <div className="space-y-2">
-                  <Label htmlFor="password">Temporary password</Label>
-                  <Input id="password" name="password" type="password" required minLength={8} />
-                </div>
-              )}
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <select name="role" id="role" className="w-full border rounded-md px-3 py-2 text-sm bg-background">
+                <select
+                  name="role"
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full border rounded-md px-3 py-2 text-sm bg-background"
+                >
                   <option value="member">Member</option>
                   <option value="admin">Admin</option>
                   <option value="child">Child</option>
                   <option value="guest">Guest</option>
                 </select>
               </div>
+              {role === "admin" && (
+                <div className="space-y-2">
+                  <Label htmlFor="pin">Starting PIN</Label>
+                  <Input
+                    id="pin"
+                    name="pin"
+                    type="password"
+                    inputMode="numeric"
+                    pattern="\d*"
+                    required
+                    minLength={4}
+                    maxLength={8}
+                    placeholder="4–8 digits"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Admins must have a PIN. They can change it themselves once
+                    signed in — you won&apos;t be able to.
+                  </p>
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading
-                  ? "Creating..."
-                  : passwordless
-                    ? "Create profile"
-                    : "Create member"}
+                {loading ? "Creating..." : "Create profile"}
               </Button>
             </form>
           </DialogContent>
@@ -159,6 +157,18 @@ export function MembersClient({ authMode }: { authMode: AuthMode }) {
                 <Badge variant="outline" className="capitalize">
                   {m.role ?? "member"}
                 </Badge>
+                {m.hasPin && <Badge variant="secondary">PIN</Badge>}
+                {m.hasPin && m.role !== "admin" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleClearPin(m)}
+                    className="h-8 w-8"
+                    title="Reset PIN"
+                  >
+                    <Ban className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -178,4 +188,3 @@ export function MembersClient({ authMode }: { authMode: AuthMode }) {
     </div>
   );
 }
-

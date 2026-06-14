@@ -17,6 +17,9 @@ export const user = sqliteTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   role: text("role"),
+  // Hashed PIN (4-8 digits) for passwordless sign-in. Null means no PIN: the
+  // profile signs in by being picked. Admins always have one. Never sent to the client.
+  pinHash: text("pin_hash"),
   banned: integer("banned", { mode: "boolean" }).default(false),
   banReason: text("ban_reason"),
   banExpires: integer("ban_expires", { mode: "timestamp_ms" }),

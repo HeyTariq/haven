@@ -148,7 +148,7 @@ export async function completeChore(choreId: string) {
 }
 
 export async function uncompleteChore(choreId: string) {
-  await requireUser();
+  const user = await requireUser();
   const [existing] = await db
     .select()
     .from(chore)
@@ -156,6 +156,7 @@ export async function uncompleteChore(choreId: string) {
     .limit(1);
 
   if (!existing || existing.recurrence !== "none") return;
+  await assertCanEditChore(existing, user);
 
   // delete the most recent completion for this chore
   const [latest] = await db

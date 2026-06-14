@@ -24,7 +24,7 @@ const PRESETS: { id: Preset; title: string; description: string }[] = [
   {
     id: "roommates",
     title: "Roommates",
-    description: "Separate accounts with passwords and enforced privacy.",
+    description: "Separate accounts, pick-a-profile with optional PINs.",
   },
 ];
 
@@ -33,8 +33,6 @@ export default function SetupForm() {
   const [preset, setPreset] = useState<Preset | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const requiresPassword = preset === "roommates";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,7 +48,7 @@ export default function SetupForm() {
       setError(result.error);
       setLoading(false);
     } else {
-      router.push(result.signedIn ? "/dashboard" : "/login");
+      router.push("/dashboard");
     }
   }
 
@@ -100,22 +98,34 @@ export default function SetupForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">
-              {requiresPassword ? "Password" : "Password (optional)"}
-            </Label>
+            <Label htmlFor="pin">PIN</Label>
             <Input
-              id="password"
-              name="password"
+              id="pin"
+              name="pin"
               type="password"
-              required={requiresPassword}
-              minLength={8}
+              inputMode="numeric"
+              pattern="\d*"
+              required
+              minLength={4}
+              maxLength={8}
+              placeholder="4–8 digits"
             />
-            {!requiresPassword && (
-              <p className="text-xs text-muted-foreground">
-                Leave blank for passwordless access. You can require passwords
-                later in settings.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              Admins must set a PIN. It is the only thing protecting your profile.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPin">Confirm PIN</Label>
+            <Input
+              id="confirmPin"
+              name="confirmPin"
+              type="password"
+              inputMode="numeric"
+              pattern="\d*"
+              required
+              minLength={4}
+              maxLength={8}
+            />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex gap-2">

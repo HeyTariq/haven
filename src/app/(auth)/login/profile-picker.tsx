@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { signInAsUser, forgetDevice } from "@/lib/auth/passwordless";
-import type { Profile } from "@/lib/auth/members";
+import type { PublicProfile } from "@/lib/auth/members";
 
 function initials(name: string): string {
   return name
@@ -17,26 +20,108 @@ function initials(name: string): string {
     .slice(0, 2);
 }
 
+function PinPrompt({
+  profile,
+  remember,
+  onBack,
+}: {
+  profile: PublicProfile;
+  remember: boolean;
+  onBack: () => void;
+}) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const form = new FormData(e.currentTarget);
+    const result = await signInAsUser(
+      profile.id,
+      form.get("pin") as string,
+      remember,
+    );
+
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+    } else {
+      router.push("/dashboard");
+      router.refresh();
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          {profile.image && <AvatarImage src={profile.image} alt={profile.name} />}
+          <AvatarFallback>{initials(profile.name)}</AvatarFallback>
+        </Avatar>
+        <span className="font-medium">{profile.name}</span>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="pin">PIN</Label>
+          <Input
+            id="pin"
+            name="pin"
+            type="password"
+            inputMode="numeric"
+            pattern="\d*"
+            minLength={4}
+            maxLength={8}
+            required
+            autoFocus
+          />
+        </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+      <button
+        type="button"
+        onClick={onBack}
+        className="w-full text-center text-sm text-muted-foreground underline"
+      >
+        Back to profiles
+      </button>
+    </div>
+  );
+}
+
 export default function ProfilePicker({
   profiles,
   remembered = null,
   autoSignIn = false,
 }: {
-  profiles: Profile[];
-  remembered?: Profile | null;
+  profiles: PublicProfile[];
+  remembered?: PublicProfile | null;
   autoSignIn?: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [remember, setRemember] = useState(true);
-  // Drops out of "Continue as X" into the full grid once the user taps "Not you?".
   const [showAll, setShowAll] = useState(false);
+  const [pinTarget, setPinTarget] = useState<PublicProfile | null>(null);
+  const [pinRemember, setPinRemember] = useState(true);
 
-  async function pick(id: string, rememberDevice: boolean) {
+  // PIN-protected profiles get a prompt; everyone else signs in on the tap.
+  async function pick(profile: PublicProfile, rememberDevice: boolean) {
+    if (profile.hasPin) {
+      setError(null);
+      setPinRemember(rememberDevice);
+      setPinTarget(profile);
+      return;
+    }
     setError(null);
-    setPendingId(id);
-    const result = await signInAsUser(id, rememberDevice);
+    setPendingId(profile.id);
+    const result = await signInAsUser(profile.id, undefined, rememberDevice);
     if (result.error) {
       setError(result.error);
       setPendingId(null);
@@ -46,21 +131,29 @@ export default function ProfilePicker({
     router.refresh();
   }
 
-  // Solo households skip the picker entirely: sign in the only profile on load.
   const autoPicked = useRef(false);
   useEffect(() => {
-    if (autoSignIn && profiles.length === 1 && !autoPicked.current) {
+    if (autoSignIn && remembered && !autoPicked.current) {
       autoPicked.current = true;
-      pick(profiles[0].id, true);
+      pick(remembered, true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoSignIn, profiles]);
+  }, [autoSignIn, remembered]);
 
-  if (autoSignIn) {
+  if (autoSignIn && !pinTarget && !error) {
     return <p className="text-center text-sm text-muted-foreground">Signing in...</p>;
   }
 
-  // One-tap return for a device that already knows its member.
+  if (pinTarget) {
+    return (
+      <PinPrompt
+        profile={pinTarget}
+        remember={pinRemember}
+        onBack={() => setPinTarget(null)}
+      />
+    );
+  }
+
   if (remembered && !showAll) {
     const pending = pendingId === remembered.id;
     return (
@@ -68,7 +161,7 @@ export default function ProfilePicker({
         <button
           type="button"
           disabled={pendingId !== null}
-          onClick={() => pick(remembered.id, true)}
+          onClick={() => pick(remembered, true)}
           className="w-full text-left disabled:opacity-50"
         >
           <Card className="transition-colors hover:bg-accent">
@@ -111,7 +204,7 @@ export default function ProfilePicker({
             key={p.id}
             type="button"
             disabled={pendingId !== null}
-            onClick={() => pick(p.id, remember)}
+            onClick={() => pick(p, remember)}
             className="w-28 disabled:opacity-50"
           >
             <Card className="transition-colors hover:bg-accent">

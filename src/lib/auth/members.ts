@@ -1,6 +1,6 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { account, user } from "@/lib/db/schema/auth";
+import { user } from "@/lib/db/schema/auth";
 
 export type Member = { id: string; name: string };
 
@@ -13,36 +13,32 @@ export type Profile = {
   name: string;
   image: string | null;
   role: string | null;
+  hasPin: boolean;
 };
 
-// Identity list for the passwordless profile picker.
-export async function getProfiles(): Promise<Profile[]> {
-  return db
-    .select({
-      id: user.id,
-      name: user.name,
-      image: user.image,
-      role: user.role,
-    })
-    .from(user)
-    .orderBy(asc(user.name));
-}
+// Shape sent to the unauthenticated client picker. Omits role (so an anonymous
+// visitor cannot enumerate admins) but includes hasPin, which only tells the
+// picker whether to prompt for a PIN — it leaks no secret.
+export type PublicProfile = {
+  id: string;
+  name: string;
+  image: string | null;
+  hasPin: boolean;
+};
 
-// Profiles without a credential account, i.e. created passwordless. Used to
-// drive the forced set-password flow when auth mode flips to "password".
-export async function getProfilesWithoutPassword(): Promise<Profile[]> {
-  return db
+// Full identity list (server-side). Includes role; callers must strip role
+// before sending profiles to the client. The PIN hash is never selected — only
+// its presence (hasPin) is derived.
+export async function getProfiles(): Promise<Profile[]> {
+  const rows = await db
     .select({
       id: user.id,
       name: user.name,
       image: user.image,
       role: user.role,
+      pinHash: user.pinHash,
     })
     .from(user)
-    .leftJoin(
-      account,
-      and(eq(account.userId, user.id), eq(account.providerId, "credential")),
-    )
-    .where(isNull(account.id))
     .orderBy(asc(user.name));
+  return rows.map(({ pinHash, ...p }) => ({ ...p, hasPin: pinHash != null }));
 }
