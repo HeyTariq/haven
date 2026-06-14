@@ -121,7 +121,7 @@ Haven is a **single Docker container**: Next.js 16 (App Router) + React 19 on th
 
 ## Contributing
 
-Contributions are welcome. The fastest way to add a feature is to write a new module; see [`CLAUDE.md`](CLAUDE.md) for the module contract and the patterns to follow. Open an issue to discuss larger changes first, run `npm run lint` and `npx tsc --noEmit` before opening a PR, and keep modules self-contained.
+Contributions are welcome. The fastest way to add a feature is to write a new module. Open an issue to discuss larger changes first, run `npm run lint` and `npx tsc --noEmit` before opening a PR, and keep modules self-contained.
 
 ## License
 
