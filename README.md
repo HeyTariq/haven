@@ -13,6 +13,8 @@ Each feature is a self-contained module: a household can enable the ones it need
 
 ## Quick start (Docker)
 
+You'll need [Docker](https://docs.docker.com/get-started/get-docker/) installed and running. On Linux, make sure your user is in the `docker` group (`sudo usermod -aG docker $USER`, then re-login) so you can run Docker without `sudo`.
+
 ```bash
 mkdir -p data
 cp .env.example .env
@@ -22,7 +24,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Open http://localhost:3000. On first run, visit `/setup` to create the admin account. The `data/` directory is a volume mount that holds the SQLite database; migrations run automatically at container start.
+Open http://localhost:3000 from the host machine. To access from another device on your network, use `http://<host-ip>:3000` (find your host IP with `ip a` on Linux or `ipconfig` on Windows). On first run, visit `/setup` to create the admin account. The `data/` directory is a volume mount that holds the SQLite database; migrations run automatically at container start.
 
 ## Local development
 
@@ -30,6 +32,7 @@ Open http://localhost:3000. On first run, visit `/setup` to create the admin acc
 npm install
 mkdir -p data
 cp .env.example .env   # set BETTER_AUTH_SECRET
+npm run db:migrate     # create database tables (required on first run)
 npm run dev            # start dev server (Turbopack) on :3000
 ```
 
@@ -60,7 +63,7 @@ Type-check without emitting: `npx tsc --noEmit`.
 - **Route groups** — `(auth)` for unauthenticated pages (`/setup`, `/login`), `(app)` for the authenticated shell with sidebar nav, and `api/auth/[...all]` for the Better Auth handler.
 - **Auth** (`src/lib/auth/`) — Better Auth with email/password and an admin plugin, on a Drizzle/SQLite adapter. Server-side guards (`requireUser`, `requireAdmin`) live here, alongside the visibility primitive.
 - **Modules** (`src/modules/`, `src/lib/modules/registry.ts`) — each module defines its schema, server actions, visibility-filtered queries, a route page, and a required dashboard widget.
-- **Database** (`src/lib/db/`) — better-sqlite3 in WAL mode with foreign keys on; schema defined with Drizzle and migrated programmatically at startup.
+- **Database** (`src/lib/db/`) — better-sqlite3 in WAL mode with foreign keys on; schema defined with Drizzle. Migrations run automatically at container start (Docker) or via `npm run db:migrate` locally.
 - **Middleware** (`src/proxy.ts`) — redirects unauthenticated requests to `/login`.
 
 ## License

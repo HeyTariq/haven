@@ -7,7 +7,7 @@ FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN mkdir -p data
+RUN mkdir -p data public
 RUN npm run build
 # Precompile the migration entrypoint to plain JS so the runtime needs no tsx/esbuild.
 # Bundle drizzle-orm in (Next's trace omits its migrator subpath); keep only the native
