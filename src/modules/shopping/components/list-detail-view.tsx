@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Lock, Plus, Trash2, Share2 } from "lucide-react";
@@ -30,9 +30,46 @@ interface Props {
   isOwner: boolean;
 }
 
+// Copy text to the clipboard, with a fallback for insecure contexts (plain
+// HTTP on the LAN), where navigator.clipboard is unavailable.
+async function copyText(text: string): Promise<boolean> {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through to the legacy path
+    }
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export function ListDetailView({ list, isOwner }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  // navigator.share only exists in a secure context (HTTPS / localhost). Detect
+  // in an effect so the server and first client render agree.
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanNativeShare(
+      typeof navigator !== "undefined" && typeof navigator.share === "function"
+    );
+  }, []);
 
   const [optimisticItems, updateOptimisticItems] = useOptimistic(
     list.items,
@@ -94,29 +131,30 @@ export function ListDetailView({ list, isOwner }: Props) {
     });
   }
 
-  async function handleShare() {
+  // Mobile (HTTPS): open the native share sheet so the list can ride along to
+  // Messages, Notes, Mail, etc.
+  async function handleNativeShare() {
     const text = formatListAsText(list.name, optimisticItems);
-    // Web Share API opens the native share sheet on mobile (Notes, Messages, …),
-    // letting the list ride along to an app that works off the LAN.
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title: list.name, text });
-      } catch (err) {
-        // User dismissing the share sheet throws AbortError — ignore it.
-        if ((err as Error).name !== "AbortError") {
-          toast.error("Couldn't share the list.");
-        }
-      }
-      return;
-    }
-    // Desktop / unsupported: fall back to copying the list to the clipboard.
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.share({ title: list.name, text });
+    } catch (err) {
+      // User dismissing the share sheet throws AbortError — ignore it.
+      if ((err as Error).name !== "AbortError") {
+        toast.error("Couldn't share the list.");
+      }
+    }
+  }
+
+  async function handleCopy() {
+    const text = formatListAsText(list.name, optimisticItems);
+    const ok = await copyText(text);
+    if (ok) {
       toast.success("List copied to clipboard.");
-    } catch {
+    } else {
       toast.error("Couldn't copy the list.");
     }
   }
+
 
   const unchecked = optimisticItems.filter((i) => !i.checked);
   const checked = optimisticItems.filter((i) => i.checked);
@@ -144,7 +182,7 @@ export function ListDetailView({ list, isOwner }: Props) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleShare}
+          onClick={canNativeShare ? handleNativeShare : handleCopy}
           className="h-8 w-8 shrink-0"
           aria-label="Share list"
           title="Share list"
