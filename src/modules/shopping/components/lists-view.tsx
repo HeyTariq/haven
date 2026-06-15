@@ -22,7 +22,7 @@ import { createList, deleteList } from "@/modules/shopping/actions";
 import type { shoppingList } from "@/modules/shopping/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
-type List = InferSelectModel<typeof shoppingList>;
+type List = InferSelectModel<typeof shoppingList> & { createdByName: string | null };
 
 interface ListsViewProps {
   lists: List[];
@@ -102,19 +102,32 @@ export function ListsView({ lists: initialLists }: ListsViewProps) {
       <div className="space-y-2">
         {lists.map((list) => (
           <Card key={list.id} className="hover:bg-muted/30 transition-colors">
-            <CardContent className="flex items-center justify-between py-3 px-4">
-              <Link href={`/shopping/${list.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+            <CardContent className="relative flex items-center justify-between py-3 px-4">
+              <Link
+                href={`/shopping/${list.id}`}
+                className="flex items-center gap-3 flex-1 min-w-0 after:absolute after:inset-0"
+              >
                 {list.visibility === "private" ? (
                   <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
                 ) : (
                   <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
                 )}
-                <span className="font-medium truncate">{list.name}</span>
+                <span className="min-w-0">
+                  <span className="font-medium truncate block">{list.name}</span>
+                  {list.createdByName && (
+                    <span className="text-xs text-muted-foreground truncate block">
+                      Created by {list.createdByName}
+                    </span>
+                  )}
+                </span>
               </Link>
-              <div className="flex items-center gap-2 ml-2">
-                <Badge variant="outline" className="capitalize text-xs">
-                  {list.visibility}
-                </Badge>
+              <div className="relative z-10 flex items-center gap-2 ml-2">
+                {list.visibility === "private" && (
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <Lock className="h-3 w-3" />
+                    Private
+                  </Badge>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
