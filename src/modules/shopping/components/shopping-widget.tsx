@@ -19,7 +19,14 @@ export async function ShoppingWidget({ user }: { user: User }) {
                 href={`/shopping/${list.id}`}
                 className="flex items-center justify-between gap-2 py-2 -mx-2 px-2 rounded-md transition-colors hover:bg-muted/50"
               >
-                <span className="truncate text-sm font-medium">{list.name}</span>
+                <span className="min-w-0">
+                  <span className="truncate text-sm font-medium block">{list.name}</span>
+                  {list.createdByName && (
+                    <span className="truncate text-xs text-muted-foreground block">
+                      Created by {list.createdByName}
+                    </span>
+                  )}
+                </span>
                 <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                   {list.uncheckedItems > 0
                     ? `${list.uncheckedItems} to buy`
