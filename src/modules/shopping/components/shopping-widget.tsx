@@ -5,7 +5,7 @@ import { getListsWithCounts } from "@/modules/shopping/queries";
 import type { User } from "@/lib/auth";
 
 export async function ShoppingWidget({ user }: { user: User }) {
-  const lists = (await getListsWithCounts(user)).slice(0, 6);
+  const lists = (await getListsWithCounts(user)).slice(0, 5);
 
   return (
     <WidgetCard title="Shopping" route="/shopping" icon={ShoppingCart}>
