@@ -54,7 +54,7 @@ export async function createChore(formData: FormData) {
     points: formData.get("points") ?? 0,
   });
 
-  const dueDate = input.dueDate ? new Date(input.dueDate) : null;
+  const dueDate = input.dueDate ? new Date(input.dueDate + "T12:00:00") : null;
 
   await db.insert(chore).values({
     id: generateId(),
@@ -90,7 +90,7 @@ export async function updateChore(choreId: string, formData: FormData) {
     points: formData.get("points") ?? 0,
   });
 
-  const dueDate = input.dueDate ? new Date(input.dueDate) : null;
+  const dueDate = input.dueDate ? new Date(input.dueDate + "T12:00:00") : null;
 
   await db
     .update(chore)

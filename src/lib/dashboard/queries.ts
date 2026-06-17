@@ -56,11 +56,10 @@ export async function getDashboardLayout(
   );
 
   if (primary.length === 0) {
-    // Fresh dashboard: apply the curated preset.
-    const preset = buildPresetLayout(
-      unplaced.map((m) => ({ id: m.id, defaultLayout: m.widget!.defaultLayout }))
-    );
-    primary.push(...preset);
+    // Fresh dashboard: apply the curated preset for all seeded breakpoints.
+    const widgetSpecs = unplaced.map((m) => ({ id: m.id, defaultLayout: m.widget!.defaultLayout }));
+    primary.push(...buildPresetLayout(widgetSpecs, PRIMARY_BREAKPOINT));
+    layouts["md"] = buildPresetLayout(widgetSpecs, "md");
   } else {
     // Existing layout: flow-append newly added widgets without disturbing it.
     for (const m of unplaced) {
