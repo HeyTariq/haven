@@ -22,7 +22,7 @@ import { createList, deleteList } from "@/modules/shopping/actions";
 import type { shoppingList } from "@/modules/shopping/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
-type List = InferSelectModel<typeof shoppingList>;
+type List = InferSelectModel<typeof shoppingList> & { createdByName: string | null };
 
 interface ListsViewProps {
   lists: List[];

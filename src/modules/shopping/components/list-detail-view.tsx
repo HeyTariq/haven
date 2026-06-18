@@ -1,9 +1,9 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, Lock, Globe, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Lock, Plus, Trash2, Share2 } from "lucide-react";
 import { PageContainer } from "@/components/page-container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,23 +15,61 @@ import {
   addItem,
   deleteItem,
   clearChecked,
-  setListVisibility,
 } from "@/modules/shopping/actions";
+import { ListSettingsButton } from "@/modules/shopping/components/list-settings";
+import { formatListAsText } from "@/modules/shopping/format";
 import type { shoppingList, shoppingItem } from "@/modules/shopping/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 type List = InferSelectModel<typeof shoppingList>;
-type Item = InferSelectModel<typeof shoppingItem>;
-type ListWithItems = List & { items: Item[] };
+type Item = InferSelectModel<typeof shoppingItem> & { addedByName: string | null };
+type ListWithItems = List & { createdByName: string | null; items: Item[] };
 
 interface Props {
   list: ListWithItems;
   isOwner: boolean;
 }
 
+// Copy text to the clipboard, with a fallback for insecure contexts (plain
+// HTTP on the LAN), where navigator.clipboard is unavailable.
+async function copyText(text: string): Promise<boolean> {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through to the legacy path
+    }
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export function ListDetailView({ list, isOwner }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  // navigator.share only exists in a secure context (HTTPS / localhost). Detect
+  // in an effect so the server and first client render agree.
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCanNativeShare(
+      typeof navigator !== "undefined" && typeof navigator.share === "function"
+    );
+  }, []);
 
   const [optimisticItems, updateOptimisticItems] = useOptimistic(
     list.items,
@@ -76,6 +114,7 @@ export function ListDetailView({ list, isOwner }: Props) {
       quantity: (formData.get("quantity") as string) || null,
       checked: false,
       addedBy: "",
+      addedByName: null,
       createdAt: new Date(),
     };
 
@@ -92,13 +131,30 @@ export function ListDetailView({ list, isOwner }: Props) {
     });
   }
 
-  function handleToggleVisibility() {
-    const next = list.visibility === "shared" ? "private" : "shared";
-    startTransition(async () => {
-      await setListVisibility(list.id, next);
-      toast.success(`List is now ${next}.`);
-    });
+  // Mobile (HTTPS): open the native share sheet so the list can ride along to
+  // Messages, Notes, Mail, etc.
+  async function handleNativeShare() {
+    const text = formatListAsText(list.name, optimisticItems);
+    try {
+      await navigator.share({ title: list.name, text });
+    } catch (err) {
+      // User dismissing the share sheet throws AbortError — ignore it.
+      if ((err as Error).name !== "AbortError") {
+        toast.error("Couldn't share the list.");
+      }
+    }
   }
+
+  async function handleCopy() {
+    const text = formatListAsText(list.name, optimisticItems);
+    const ok = await copyText(text);
+    if (ok) {
+      toast.success("List copied to clipboard.");
+    } else {
+      toast.error("Couldn't copy the list.");
+    }
+  }
+
 
   const unchecked = optimisticItems.filter((i) => !i.checked);
   const checked = optimisticItems.filter((i) => i.checked);
@@ -111,15 +167,31 @@ export function ListDetailView({ list, isOwner }: Props) {
         </Button>
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-semibold truncate">{list.name}</h1>
-        </div>
-        <Badge variant="outline" className="gap-1 capitalize shrink-0">
-          {list.visibility === "private" ? (
-            <Lock className="h-3 w-3" />
-          ) : (
-            <Globe className="h-3 w-3" />
+          {list.createdByName && (
+            <p className="text-xs text-muted-foreground truncate">
+              Created by {list.createdByName}
+            </p>
           )}
-          {list.visibility}
-        </Badge>
+        </div>
+        {list.visibility === "private" && (
+          <Badge variant="outline" className="gap-1 shrink-0">
+            <Lock className="h-3 w-3" />
+            Private
+          </Badge>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={canNativeShare ? handleNativeShare : handleCopy}
+          className="h-8 w-8 shrink-0"
+          aria-label="Share list"
+          title="Share list"
+        >
+          <Share2 className="h-4 w-4" />
+        </Button>
+        {isOwner && (
+          <ListSettingsButton listId={list.id} visibility={list.visibility} />
+        )}
       </div>
 
       <form
@@ -140,7 +212,14 @@ export function ListDetailView({ list, isOwner }: Props) {
               checked={item.checked}
               onCheckedChange={() => handleToggle(item.id)}
             />
-            <span className="flex-1 min-w-0 text-sm">{item.name}</span>
+            <div className="flex-1 min-w-0">
+              <span className="text-sm">{item.name}</span>
+              {item.addedBy !== list.createdBy && item.addedByName && (
+                <span className="block text-xs text-muted-foreground">
+                  added by {item.addedByName}
+                </span>
+              )}
+            </div>
             {item.quantity && (
               <span className="text-xs text-muted-foreground shrink-0">{item.quantity}</span>
             )}
@@ -179,7 +258,14 @@ export function ListDetailView({ list, isOwner }: Props) {
                   checked={item.checked}
                   onCheckedChange={() => handleToggle(item.id)}
                 />
-                <span className="flex-1 min-w-0 text-sm line-through">{item.name}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm line-through">{item.name}</span>
+                  {item.addedBy !== list.createdBy && item.addedByName && (
+                    <span className="block text-xs text-muted-foreground">
+                      added by {item.addedByName}
+                    </span>
+                  )}
+                </div>
                 {item.quantity && (
                   <span className="text-xs text-muted-foreground shrink-0">{item.quantity}</span>
                 )}
@@ -199,30 +285,6 @@ export function ListDetailView({ list, isOwner }: Props) {
 
       {optimisticItems.length === 0 && (
         <p className="text-muted-foreground text-sm py-4">No items yet.</p>
-      )}
-
-      {isOwner && (
-        <div className="mt-8 pt-4 border-t">
-          <p className="text-xs text-muted-foreground font-medium mb-3 uppercase tracking-wider">List settings</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleToggleVisibility}
-            disabled={isPending}
-          >
-            {list.visibility === "shared" ? (
-              <>
-                <Lock className="h-4 w-4 mr-2" />
-                Make private
-              </>
-            ) : (
-              <>
-                <Globe className="h-4 w-4 mr-2" />
-                Make shared
-              </>
-            )}
-          </Button>
-        </div>
       )}
     </PageContainer>
   );
