@@ -118,9 +118,9 @@ export function ChoresView({
   }
 
   function handleDelete(choreId: string) {
-    dispatch({ type: "delete", id: choreId });
     setDeleteTarget(null);
     startTransition(async () => {
+      dispatch({ type: "delete", id: choreId });
       await deleteChore(choreId);
       toast.success("Chore deleted.");
     });
@@ -254,6 +254,7 @@ export function ChoresView({
       />
 
       <ChoreFormDialog
+        key={editChore?.id}
         open={editChore !== null}
         onOpenChange={(o) => { if (!o) setEditChore(null); }}
         members={members}

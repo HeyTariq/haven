@@ -28,7 +28,7 @@ export function WidgetCard({ title, route, icon: Icon, children }: WidgetCardPro
           <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
-      <CardContent className="min-h-0 flex-1 overflow-auto">{children}</CardContent>
+      <CardContent className="min-h-0 flex-1 overflow-auto max-sm:overflow-hidden">{children}</CardContent>
     </Card>
   );
 }

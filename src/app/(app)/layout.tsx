@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     id: m.id,
     label: m.label,
     route: m.route,
-    icon: <m.icon className="h-4 w-4" />,
+    icon: <m.icon className="h-5 w-5" />,
   }));
 
   return (

@@ -65,10 +65,11 @@ export function AppSidebar({ user, navModules }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
+              size="lg"
               render={<Link href="/dashboard" />}
               isActive={pathname === "/dashboard"}
             >
-              <Home className="h-4 w-4" />
+              <Home className="h-5 w-5" />
               Dashboard
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -76,6 +77,7 @@ export function AppSidebar({ user, navModules }: AppSidebarProps) {
           {navModules.map((mod) => (
             <SidebarMenuItem key={mod.id}>
               <SidebarMenuButton
+                size="lg"
                 render={<Link href={mod.route} />}
                 isActive={pathname.startsWith(mod.route)}
               >
@@ -91,10 +93,11 @@ export function AppSidebar({ user, navModules }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
+              size="lg"
               render={<Link href="/settings" />}
               isActive={pathname.startsWith("/settings")}
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-5 w-5" />
               Settings
             </SidebarMenuButton>
           </SidebarMenuItem>

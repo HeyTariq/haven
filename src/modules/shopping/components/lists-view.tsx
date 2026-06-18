@@ -101,33 +101,21 @@ export function ListsView({ lists: initialLists }: ListsViewProps) {
 
       <div className="space-y-2">
         {lists.map((list) => (
-          <Card key={list.id} className="hover:bg-muted/30 transition-colors">
-            <CardContent className="relative flex items-center justify-between py-3 px-4">
-              <Link
-                href={`/shopping/${list.id}`}
-                className="flex items-center gap-3 flex-1 min-w-0 after:absolute after:inset-0"
-              >
+          <Card key={list.id} className="relative hover:bg-muted/30 transition-colors">
+            <CardContent className="flex items-center justify-between py-3 px-4">
+              <Link href={`/shopping/${list.id}`} className="absolute inset-0" />
+              <div className="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
                 {list.visibility === "private" ? (
                   <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
                 ) : (
                   <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
                 )}
-                <span className="min-w-0">
-                  <span className="font-medium truncate block">{list.name}</span>
-                  {list.createdByName && (
-                    <span className="text-xs text-muted-foreground truncate block">
-                      Created by {list.createdByName}
-                    </span>
-                  )}
-                </span>
-              </Link>
-              <div className="relative z-10 flex items-center gap-2 ml-2">
-                {list.visibility === "private" && (
-                  <Badge variant="outline" className="text-xs gap-1">
-                    <Lock className="h-3 w-3" />
-                    Private
-                  </Badge>
-                )}
+                <span className="font-medium truncate">{list.name}</span>
+              </div>
+              <div className="flex items-center gap-2 ml-2 relative z-10">
+                <Badge variant="outline" className="capitalize text-xs">
+                  {list.visibility}
+                </Badge>
                 <Button
                   variant="ghost"
                   size="icon"

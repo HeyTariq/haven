@@ -6,6 +6,7 @@ import {
   DashboardGrid,
   type DashboardWidget,
 } from "@/components/dashboard/dashboard-grid";
+import { DateTimeDisplay } from "@/components/dashboard/date-time-display";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -26,7 +27,7 @@ export default async function DashboardPage() {
   return (
     <PageContainer wide>
       <h1 className="text-2xl font-semibold mb-1">Welcome back, {user.name}</h1>
-      <p className="text-muted-foreground mb-6">Your home dashboard</p>
+      <DateTimeDisplay />
       <DashboardGrid initialLayout={initialLayout} widgets={widgets} />
     </PageContainer>
   );
