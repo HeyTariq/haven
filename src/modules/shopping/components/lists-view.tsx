@@ -101,17 +101,18 @@ export function ListsView({ lists: initialLists }: ListsViewProps) {
 
       <div className="space-y-2">
         {lists.map((list) => (
-          <Card key={list.id} className="hover:bg-muted/30 transition-colors">
+          <Card key={list.id} className="relative hover:bg-muted/30 transition-colors">
             <CardContent className="flex items-center justify-between py-3 px-4">
-              <Link href={`/shopping/${list.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+              <Link href={`/shopping/${list.id}`} className="absolute inset-0" />
+              <div className="flex items-center gap-3 flex-1 min-w-0 pointer-events-none">
                 {list.visibility === "private" ? (
                   <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
                 ) : (
                   <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
                 )}
                 <span className="font-medium truncate">{list.name}</span>
-              </Link>
-              <div className="flex items-center gap-2 ml-2">
+              </div>
+              <div className="flex items-center gap-2 ml-2 relative z-10">
                 <Badge variant="outline" className="capitalize text-xs">
                   {list.visibility}
                 </Badge>
