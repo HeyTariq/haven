@@ -2,3 +2,4 @@
 import "@/modules/bulletin/module";
 import "@/modules/shopping/module";
 import "@/modules/chores/module";
+import "@/modules/wishlist/module";

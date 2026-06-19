@@ -7,6 +7,7 @@ import { user } from "../src/lib/db/schema/auth";
 import { shoppingList, shoppingItem } from "../src/modules/shopping/schema";
 import { chore, choreCompletion } from "../src/modules/chores/schema";
 import { bulletinPost, bulletinAck } from "../src/modules/bulletin/schema";
+import { wishlistItem } from "../src/modules/wishlist/schema";
 
 const DB_PATH = process.env.DATABASE_PATH ?? "./data/data.db";
 
@@ -447,12 +448,51 @@ async function main() {
 
   console.log("Bulletin posts & acks seeded.");
 
+  // ========== WISHLISTS ==========
+
+  await db.insert(wishlistItem).values([
+    // --- Tariq ---
+    { id: id(), userId: tariqId, name: "Sony WH-1000XM5 Headphones", description: "Black colourway preferred. Need them for focus work at home.", url: "https://www.amazon.com/dp/B09XS7JWHH", price: "~$280", priority: "high" },
+    { id: id(), userId: tariqId, name: "Standing Desk Mat", description: "Anti-fatigue, at least 20x36in, preferably with a bevelled edge.", url: null, price: "~$50", priority: "medium" },
+    { id: id(), userId: tariqId, name: "The Pragmatic Programmer (20th Ed.)", description: null, url: "https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/", price: "~$50", priority: "low" },
+    { id: id(), userId: tariqId, name: "Ember Mug 2 (14oz)", description: "Keeps coffee at the right temperature — tired of reheating.", url: null, price: "~$100", priority: "medium" },
+
+    // --- Sarah ---
+    { id: id(), userId: sarahId, name: "Dyson Airwrap (Long Barrel Kit)", description: "The fuchsia/nickel colour if still available.", url: "https://www.dyson.com/hair-care/stylers/airwrap", price: "~$600", priority: "high" },
+    { id: id(), userId: sarahId, name: "Kindle Paperwhite (Signature Edition)", description: "Love reading before bed — the warm light is a must.", url: null, price: "~$190", priority: "high" },
+    { id: id(), userId: sarahId, name: "LANEIGE Lip Sleeping Mask (Berry)", description: "I go through these so fast, always a good gift.", url: null, price: "~$24", priority: "low" },
+    { id: id(), userId: sarahId, name: "Cozy Earth Bamboo Throw Blanket", description: "Queen size, any neutral colour.", url: null, price: "~$80", priority: "medium" },
+    { id: id(), userId: sarahId, name: "Aesop Resurrection Hand Balm", description: null, url: null, price: "~$35", priority: "low" },
+
+    // --- Marcus ---
+    { id: id(), userId: marcusId, name: "Milwaukee M18 Cordless Drill (2-Tool Combo)", description: "The hammer drill + impact driver kit. Already have one M18 battery.", url: "https://www.amazon.com/dp/B07FKJHFQM", price: "~$200", priority: "high" },
+    { id: id(), userId: marcusId, name: "Hiking Boots — Salomon X Ultra 4", description: "Size 11 wide. Waterproof version (GTX).", url: null, price: "~$165", priority: "high" },
+    { id: id(), userId: marcusId, name: "Traeger Pro 575 Pellet Grill", description: "Long-term wishlist item. Any colour.", url: "https://www.traeger.com/grills/pro/575", price: "~$800", priority: "low" },
+    { id: id(), userId: marcusId, name: "Osprey Farpoint 40 Backpack", description: "For travelling — the 40L size fits carry-on. Tungsten Grey if possible.", url: null, price: "~$160", priority: "medium" },
+
+    // --- Priya ---
+    { id: id(), userId: priyaId, name: "Yoga Block Set + Strap", description: "Cork blocks preferred over foam. 2 blocks + strap.", url: null, price: "~$30", priority: "low" },
+    { id: id(), userId: priyaId, name: "Supergoop Unseen Sunscreen SPF 40", description: "The full-size 1.7oz. Wears well under makeup.", url: null, price: "~$38", priority: "medium" },
+    { id: id(), userId: priyaId, name: "Atomic Habits by James Clear", description: "Have been meaning to read this forever.", url: null, price: "~$18", priority: "low" },
+    { id: id(), userId: priyaId, name: "Oura Ring Gen 3 (Horizon)", description: "Size 8. Silver finish. Want to track sleep quality.", url: "https://ouraring.com/product/rings/heritage", price: "~$350", priority: "high" },
+    { id: id(), userId: priyaId, name: "Vitamix 5200 Blender", description: "For smoothies and soups. The classic series, not the smart one.", url: null, price: "~$450", priority: "medium" },
+
+    // --- Jake ---
+    { id: id(), userId: jakeId, name: "Keychron K2 Mechanical Keyboard (Hot-Swap)", description: "Brown switches. Wireless. The aluminium frame version if possible.", url: "https://www.keychron.com/products/keychron-k2-hot-swappable-wireless-mechanical-keyboard", price: "~$90", priority: "high" },
+    { id: id(), userId: jakeId, name: "27-inch 4K Monitor (Dell U2723D or similar)", description: "Need a second monitor for my desk setup. IPS panel preferred.", url: null, price: "~$450", priority: "high" },
+    { id: id(), userId: jakeId, name: "AeroPress Coffee Maker", description: "Love the idea of making great coffee fast without a full setup.", url: null, price: "~$35", priority: "medium" },
+    { id: id(), userId: jakeId, name: "Zelda: Tears of the Kingdom", description: null, url: null, price: "~$60", priority: "low" },
+  ]);
+
+  console.log("Wishlists seeded.");
+
   sqlite.close();
   console.log("\nDone! Database seeded with:");
   console.log("  5 users (1 admin + 4 members, no PINs)");
   console.log("  6 shopping lists, 35 items");
   console.log("  11 chores, 19 completions");
   console.log("  8 bulletin posts, 22 acks");
+  console.log("  23 wishlist items across 5 members");
 }
 
 main().catch((err) => {

@@ -9,10 +9,6 @@ export default async function BulletinPage() {
 
   return (
     <PageContainer>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Bulletin Board</h1>
-        <p className="text-muted-foreground text-sm">Household announcements</p>
-      </div>
       <BulletinBoardView
         posts={posts}
         currentUserId={user.id}

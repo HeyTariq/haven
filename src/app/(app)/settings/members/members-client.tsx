@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
@@ -36,9 +36,12 @@ export function MembersClient() {
     setLoaded(true);
   }
 
-  if (!loaded) {
-    loadMembers();
-  }
+  useEffect(() => {
+    listMembers().then((rows) => {
+      setMembers(rows);
+      setLoaded(true);
+    });
+  }, []);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

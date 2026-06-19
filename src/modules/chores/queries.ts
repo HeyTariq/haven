@@ -46,7 +46,8 @@ export async function getChores(): Promise<ChoreRow[]> {
       sql`CASE WHEN ${chore.dueDate} IS NULL THEN 1 ELSE 0 END`,
       asc(chore.dueDate),
       desc(chore.createdAt)
-    );
+    )
+    .limit(500);
 
   if (chores.length === 0) return [];
 
@@ -90,7 +91,8 @@ export async function getScoreboard(): Promise<ScoreboardEntry[]> {
     .leftJoin(choreCompletion, eq(choreCompletion.userId, user.id))
     .leftJoin(chore, eq(choreCompletion.choreId, chore.id))
     .groupBy(user.id, user.name)
-    .orderBy(desc(sql`points`));
+    .orderBy(desc(sql`points`))
+    .limit(500);
 
   return rows.map((r) => ({ ...r, points: Number(r.points) }));
 }

@@ -43,7 +43,11 @@ export function BulletinBoardView({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Bulletin Board</h1>
+          <p className="text-muted-foreground text-sm">Household announcements</p>
+        </div>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" />
           New announcement

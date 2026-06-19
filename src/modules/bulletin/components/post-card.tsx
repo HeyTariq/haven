@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@/lib/date";
 import { MoreHorizontal, Pin, Pencil, Trash2, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,7 +92,7 @@ export function PostCard({
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-sm font-medium">{post.authorName ?? "Unknown"}</span>
               <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                {formatDistanceToNow(post.createdAt)}
                 {edited && " (edited)"}
               </span>
               {post.pinned && <Pin className="h-3 w-3 text-muted-foreground fill-current" />}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic, useTransition } from "react";
-import { isToday, isPast, startOfDay, format } from "date-fns";
+import { isToday, isPast, startOfDay, formatShortDate } from "@/lib/date";
 import { Checkbox } from "@/components/ui/checkbox";
 import { completeChore } from "@/modules/chores/actions";
 import type { ChoreRow } from "@/modules/chores/queries";
@@ -65,7 +65,7 @@ export function ChoresWidgetList({ chores: initialChores }: { chores: ChoreRow[]
             : isDueToday
               ? "Today"
               : c.dueDate
-                ? format(c.dueDate, "MMM d")
+                ? formatShortDate(c.dueDate)
                 : c.assignedToName ?? "";
           return (
             <li key={c.id} className="py-1 first:pt-0 last:pb-0">

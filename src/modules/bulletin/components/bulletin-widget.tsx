@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "@/lib/date";
 import { Megaphone, Pin } from "lucide-react";
 import { WidgetCard } from "@/components/dashboard/widget-card";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,7 @@ export async function BulletinWidget({ user }: { user: User }) {
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {post.authorName ?? "Unknown"} ·{" "}
-                    {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                    {formatDistanceToNow(post.createdAt)}
                     {post.ackCount > 0 && ` · ${post.ackCount} acknowledged`}
                   </p>
                 </div>

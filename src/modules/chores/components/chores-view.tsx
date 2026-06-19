@@ -3,7 +3,7 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, RefreshCw, Trophy } from "lucide-react";
-import { format, isToday, isPast, startOfDay } from "date-fns";
+import { formatShortDate, isToday, isPast, startOfDay } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { completeChore, uncompleteChore, deleteChore } from "@/modules/chores/actions";
 import { ChoreFormDialog } from "./chore-form-dialog";
+import { ChoreSettingsButton } from "./chore-settings";
 import type { ChoreRow, ScoreboardEntry } from "@/modules/chores/queries";
 import type { Member } from "@/lib/auth/members";
 import type { ChoreSettings } from "@/lib/settings";
@@ -66,7 +67,7 @@ function DueBadge({ dueDate }: { dueDate: Date | null }) {
   if (isToday(dueDate)) {
     return <Badge variant="outline" className="text-xs border-orange-400 text-orange-500">Today</Badge>;
   }
-  return <Badge variant="outline" className="text-xs">{format(dueDate, "MMM d")}</Badge>;
+  return <Badge variant="outline" className="text-xs">{formatShortDate(dueDate)}</Badge>;
 }
 
 function RecurrenceBadge({ recurrence }: { recurrence: ChoreRow["recurrence"] }) {
@@ -131,11 +132,18 @@ export function ChoresView({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
-          New chore
-        </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Chores</h1>
+          <p className="text-muted-foreground text-sm">Household tasks and assignments</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            New chore
+          </Button>
+          {isAdmin && <ChoreSettingsButton settings={settings} />}
+        </div>
       </div>
       {settings.showPoints && scoreboard.length > 0 && (
         <Card>
