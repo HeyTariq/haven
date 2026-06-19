@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
-import { addDays, addWeeks, addMonths, max, startOfDay } from "date-fns";
+import { addDays, addWeeks, addMonths, maxDate, startOfDay } from "@/lib/date";
 import { db } from "@/lib/db";
 import { requireUser, requireAdmin } from "@/lib/auth/session";
 import { getChoreSettings, setSetting } from "@/lib/settings";
@@ -28,7 +28,7 @@ function nextDueDate(
   recurrence: "daily" | "weekly" | "monthly",
   current: Date | null
 ): Date {
-  const base = current ? max([current, startOfDay(new Date())]) : new Date();
+  const base = current ? maxDate([current, startOfDay(new Date())]) : new Date();
   if (recurrence === "daily") return addDays(base, 1);
   if (recurrence === "weekly") return addWeeks(base, 1);
   return addMonths(base, 1);

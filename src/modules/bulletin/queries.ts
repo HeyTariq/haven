@@ -59,7 +59,7 @@ async function loadPosts(currentUser: User, limit?: number): Promise<PostRow[]> 
     )
     .orderBy(desc(bulletinPost.pinned), desc(bulletinPost.createdAt));
 
-  const posts = limit ? await base.limit(limit) : await base;
+  const posts = await base.limit(limit ?? 500);
   if (posts.length === 0) return [];
 
   const postIds = posts.map((p) => p.id);

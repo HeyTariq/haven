@@ -11,7 +11,8 @@ export async function getMyItems(user: User) {
     .select()
     .from(wishlistItem)
     .where(eq(wishlistItem.userId, user.id))
-    .orderBy(priorityOrder, asc(wishlistItem.createdAt));
+    .orderBy(priorityOrder, asc(wishlistItem.createdAt))
+    .limit(500);
 }
 
 export async function getAllItemsGroupedByUser() {
@@ -30,7 +31,8 @@ export async function getAllItemsGroupedByUser() {
     })
     .from(wishlistItem)
     .innerJoin(userTable, eq(wishlistItem.userId, userTable.id))
-    .orderBy(asc(userTable.name), priorityOrder, asc(wishlistItem.createdAt));
+    .orderBy(asc(userTable.name), priorityOrder, asc(wishlistItem.createdAt))
+    .limit(500);
 }
 
 export async function getUserItems(userId: string) {
@@ -38,5 +40,6 @@ export async function getUserItems(userId: string) {
     .select()
     .from(wishlistItem)
     .where(eq(wishlistItem.userId, userId))
-    .orderBy(priorityOrder, asc(wishlistItem.createdAt));
+    .orderBy(priorityOrder, asc(wishlistItem.createdAt))
+    .limit(500);
 }

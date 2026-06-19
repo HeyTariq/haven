@@ -1,7 +1,6 @@
 "use client"
 
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
-import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
@@ -23,26 +22,27 @@ function Tabs({
   )
 }
 
-const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted",
-        line: "gap-1 bg-transparent",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
+type TabsListVariant = "default" | "line"
+
+const TABS_LIST_BASE =
+  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none"
+
+const TABS_LIST_VARIANTS: Record<TabsListVariant, string> = {
+  default: "bg-muted",
+  line: "gap-1 bg-transparent",
+}
+
+export type TabsListVariantProps = { variant?: TabsListVariant }
+
+function tabsListVariants({ variant = "default" }: TabsListVariantProps = {}) {
+  return cn(TABS_LIST_BASE, TABS_LIST_VARIANTS[variant])
+}
 
 function TabsList({
   className,
   variant = "default",
   ...props
-}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
+}: TabsPrimitive.List.Props & TabsListVariantProps) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"

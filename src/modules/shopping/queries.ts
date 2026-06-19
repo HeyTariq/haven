@@ -19,7 +19,8 @@ export async function getLists(user: User) {
     .from(shoppingList)
     .leftJoin(userTable, eq(shoppingList.createdBy, userTable.id))
     .where(visibleFilter(shoppingList.ownerId, shoppingList.visibility, user.id))
-    .orderBy(desc(shoppingList.createdAt));
+    .orderBy(desc(shoppingList.createdAt))
+    .limit(500);
 }
 
 export async function getListsWithCounts(user: User) {
@@ -37,7 +38,8 @@ export async function getListsWithCounts(user: User) {
     .leftJoin(userTable, eq(shoppingList.createdBy, userTable.id))
     .where(visibleFilter(shoppingList.ownerId, shoppingList.visibility, user.id))
     .groupBy(shoppingList.id, userTable.name)
-    .orderBy(desc(shoppingList.createdAt));
+    .orderBy(desc(shoppingList.createdAt))
+    .limit(500);
 }
 
 export async function getListWithItems(listId: string, user: User) {

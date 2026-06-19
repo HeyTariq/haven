@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
@@ -36,9 +36,9 @@ export function MembersClient() {
     setLoaded(true);
   }
 
-  if (!loaded) {
+  useEffect(() => {
     loadMembers();
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -3,7 +3,7 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, RefreshCw, Trophy } from "lucide-react";
-import { format, isToday, isPast, startOfDay } from "date-fns";
+import { formatShortDate, isToday, isPast, startOfDay } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,7 +67,7 @@ function DueBadge({ dueDate }: { dueDate: Date | null }) {
   if (isToday(dueDate)) {
     return <Badge variant="outline" className="text-xs border-orange-400 text-orange-500">Today</Badge>;
   }
-  return <Badge variant="outline" className="text-xs">{format(dueDate, "MMM d")}</Badge>;
+  return <Badge variant="outline" className="text-xs">{formatShortDate(dueDate)}</Badge>;
 }
 
 function RecurrenceBadge({ recurrence }: { recurrence: ChoreRow["recurrence"] }) {

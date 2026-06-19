@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import RGL from "react-grid-layout";
+import dynamic from "next/dynamic";
+import type { Layout, Layouts } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { Plus, Settings2, X } from "lucide-react";
@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { saveDashboardLayout } from "@/lib/dashboard/actions";
 import { buildPresetLayout } from "@/lib/dashboard/preset";
 import {
@@ -25,8 +26,13 @@ import {
   type DashboardLayoutData,
 } from "@/lib/dashboard/types";
 
-type Layout = RGL.Layout;
-type Layouts = RGL.Layouts;
+const ResponsiveGridLayout = dynamic(
+  () =>
+    import("react-grid-layout").then((RGL) => ({
+      default: RGL.WidthProvider(RGL.Responsive),
+    })),
+  { ssr: false }
+);
 
 type WidgetSize = { w: number; h: number; minW?: number; minH?: number };
 
@@ -36,8 +42,6 @@ export type DashboardWidget = {
   node: React.ReactNode;
   defaultLayout: WidgetSize;
 };
-
-const ResponsiveGridLayout = RGL.WidthProvider(RGL.Responsive);
 
 export function DashboardGrid({
   initialLayout,
@@ -63,18 +67,18 @@ export function DashboardGrid({
     if (!isMobile) return visibleWidgets;
     const lgLayout = layouts[PRIMARY_BREAKPOINT] ?? [];
     return [...visibleWidgets].sort((a, b) => {
-      const ay = lgLayout.find((p) => p.i === a.id)?.y ?? 999;
-      const by = lgLayout.find((p) => p.i === b.id)?.y ?? 999;
+      const ay = lgLayout.find((p: Layout) => p.i === a.id)?.y ?? 999;
+      const by = lgLayout.find((p: Layout) => p.i === b.id)?.y ?? 999;
       return ay - by;
     });
   }, [isMobile, visibleWidgets, layouts]);
 
   function hideWidget(id: string) {
     setHidden((prev) => [...prev, id]);
-    setLayouts((prev) => {
+    setLayouts((prev: Layouts) => {
       const next: Layouts = {};
       for (const [bp, items] of Object.entries(prev)) {
-        next[bp] = items.filter((it) => it.i !== id);
+        next[bp] = (items as Layout[]).filter((it) => it.i !== id);
       }
       return next;
     });
@@ -84,9 +88,9 @@ export function DashboardGrid({
     const widget = widgetById.get(id);
     if (!widget) return;
     setHidden((prev) => prev.filter((h) => h !== id));
-    setLayouts((prev) => {
-      const current = prev[PRIMARY_BREAKPOINT] ?? [];
-      const bottom = current.reduce((max, p) => Math.max(max, p.y + p.h), 0);
+    setLayouts((prev: Layouts) => {
+      const current = (prev[PRIMARY_BREAKPOINT] ?? []) as Layout[];
+      const bottom = current.reduce((acc: number, p: Layout) => Math.max(acc, p.y + p.h), 0);
       const placement: Layout = {
         i: id,
         x: 0,
@@ -188,7 +192,7 @@ export function DashboardGrid({
           isDraggable={editing}
           isResizable={editing}
           draggableHandle=".widget-drag-handle"
-          onLayoutChange={(_current, all) => {
+          onLayoutChange={(_current: Layout[], all: Layouts) => {
             if (editing) setLayouts(all);
           }}
         >
