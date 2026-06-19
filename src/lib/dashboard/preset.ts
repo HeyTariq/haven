@@ -14,11 +14,13 @@ export const DASHBOARD_PRESETS: Record<string, BreakpointPreset> = {
     bulletin: { x: 0, y: 0, w: 5, h: 8 },
     shopping: { x: 5, y: 0, w: 5, h: 4 },
     chores:   { x: 5, y: 4, w: 5, h: 4 },
+    wishlist: { x: 0, y: 8, w: 5, h: 5 },
   },
   md: {
     bulletin: { x: 0, y: 0, w: 5, h: 8 },
     shopping: { x: 5, y: 0, w: 5, h: 4 },
     chores:   { x: 5, y: 4, w: 5, h: 4 },
+    wishlist: { x: 0, y: 8, w: 5, h: 5 },
   },
 };
 

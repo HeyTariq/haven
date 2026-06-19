@@ -57,7 +57,11 @@ export function ListsView({ lists: initialLists }: ListsViewProps) {
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold">Shopping</h1>
+          <p className="text-muted-foreground text-sm">Shared and personal lists</p>
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={<Button size="sm" />}>
             <Plus className="h-4 w-4 mr-1" />

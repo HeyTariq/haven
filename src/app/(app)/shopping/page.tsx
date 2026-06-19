@@ -9,10 +9,6 @@ export default async function ShoppingPage() {
 
   return (
     <PageContainer>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Shopping</h1>
-        <p className="text-muted-foreground text-sm">Shared and personal lists</p>
-      </div>
       <ListsView lists={lists} />
     </PageContainer>
   );

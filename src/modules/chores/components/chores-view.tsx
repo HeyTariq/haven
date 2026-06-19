@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { completeChore, uncompleteChore, deleteChore } from "@/modules/chores/actions";
 import { ChoreFormDialog } from "./chore-form-dialog";
+import { ChoreSettingsButton } from "./chore-settings";
 import type { ChoreRow, ScoreboardEntry } from "@/modules/chores/queries";
 import type { Member } from "@/lib/auth/members";
 import type { ChoreSettings } from "@/lib/settings";
@@ -131,11 +132,18 @@ export function ChoresView({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
-          New chore
-        </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Chores</h1>
+          <p className="text-muted-foreground text-sm">Household tasks and assignments</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            New chore
+          </Button>
+          {isAdmin && <ChoreSettingsButton settings={settings} />}
+        </div>
       </div>
       {settings.showPoints && scoreboard.length > 0 && (
         <Card>
