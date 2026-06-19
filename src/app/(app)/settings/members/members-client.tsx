@@ -37,8 +37,11 @@ export function MembersClient() {
   }
 
   useEffect(() => {
-    loadMembers();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    listMembers().then((rows) => {
+      setMembers(rows);
+      setLoaded(true);
+    });
+  }, []);
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
